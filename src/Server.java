@@ -134,29 +134,18 @@ public class Server {
 		@Override
 		public void run() {
 			try {
-				ReadDataThread readDataThread  = new ReadDataThread();
-				readDataThread.start();
+				while(true) {
+					scanner = new Scanner(connection.getInputStream());
+					while (scanner.hasNext()){
+						String message = scanner.nextLine();
+						System.out.println("Receive Message => "+ message);
+						message  = message.replace("msg=>", "");
+						lblMsgSender.setText(message);
+					}
+				}
 			} catch (Exception e) {
 				e.printStackTrace();			
 			}
-		}
-	}
-	
-	class ReadDataThread extends Thread {
-		
-		@Override
-		public void run() {
-			try {
-				Scanner scanner = new Scanner(connection.getInputStream());
-				while (scanner.hasNext()){
-					String message = scanner.nextLine();
-					System.out.println("Receive Message => "+ message);
-					message  = message.replace("msg=>", "");
-					lblMsgSender.setText(message);
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			}		
 		}
 	}
 }

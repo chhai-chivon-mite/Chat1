@@ -136,28 +136,19 @@ public class Client {
 		
 		@Override
 		public void run() {
-			while(true) {
-				ReadDataThread readDataThread  = new ReadDataThread();
-				readDataThread.start();
-			}
-		}
-	}
-	
-	class ReadDataThread extends Thread {
-		
-		@Override
-		public void run() {
 			try {
-				scanner = new Scanner(connection.getInputStream());
-				while (scanner.hasNext()){
-					String message = scanner.nextLine();
-					System.out.println("Message Receive => " +  message);
-					message  = message.replace("msg=>", "");
-					lblMsgSender.setText(message);
+				while(true) {					
+					scanner = new Scanner(connection.getInputStream());
+					while (scanner.hasNext()){
+						String message = scanner.nextLine();
+						System.out.println("Message Receive => " +  message);
+						message  = message.replace("msg=>", "");
+						lblMsgSender.setText(message);
+					}
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
-			}			
+			}
 		}
 	}
 }
