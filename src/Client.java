@@ -6,6 +6,12 @@ import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import java.awt.event.ActionListener;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Scanner;
+import java.awt.event.ActionEvent;
 
 /*
  * @author: Chhai Chivon on Jan 8, 2020
@@ -17,6 +23,13 @@ public class Client {
 	private JFrame frmChatClient;
 	private JTextField tfMessage;
 
+	JLabel lblMsgSender;
+	JLabel lblMsgReciever;
+	
+	private Socket connection;
+	private Scanner scanner;
+	private OutputStreamWriter outputStreamWriter;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -38,6 +51,8 @@ public class Client {
 	 */
 	public Client() {
 		initialize();
+		BindThread bindThread = new BindThread();
+		bindThread.start();
 	}
 
 	/**
@@ -58,17 +73,91 @@ public class Client {
 		tfMessage.setColumns(10);
 		
 		JButton btnSend = new JButton("Send");
+		btnSend.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SendThread sendThread  = new SendThread();
+				sendThread.start();
+			}
+		});
 		btnSend.setBounds(335, 229, 89, 23);
 		frmChatClient.getContentPane().add(btnSend);
 		
-		JLabel lblMsgReciever = new JLabel("Hello,");
+		lblMsgReciever = new JLabel("Hello,");
 		lblMsgReciever.setBounds(10, 11, 201, 14);
 		frmChatClient.getContentPane().add(lblMsgReciever);
 		
-		JLabel lblMsgSender = new JLabel("Hello, How are you !");
+		lblMsgSender = new JLabel("Hello, How are you !");
 		lblMsgSender.setBounds(223, 11, 201, 14);
 		frmChatClient.getContentPane().add(lblMsgSender);
-
 	}
 
+	
+	class BindThread  extends Thread {
+		
+		@Override
+		public void run() {
+			try {
+				// Bind to port
+//				ServerSocket serverSocket = new ServerSocket(1234);
+//				System.out.println("Wait client request...");
+//				connection = serverSocket.accept();
+				System.out.println("Connect to Server...");
+				connection = new Socket("localhost",1234);
+				
+				ReceiveThread receiveThread = new ReceiveThread();
+				receiveThread.start();
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	class SendThread extends Thread {
+	
+		@Override
+		public void run() {
+			try {
+				outputStreamWriter = new OutputStreamWriter(connection.getOutputStream());
+				String message = tfMessage.getText();
+				String msgSend = "msg=>"+message;
+				System.out.println("Message Send  => " + msgSend);
+				tfMessage.setText("");
+				outputStreamWriter.write(msgSend);
+				outputStreamWriter.write("\n");
+				outputStreamWriter.flush();
+			} catch (Exception e) {
+				e.printStackTrace();			
+			}
+		}
+	}
+	
+	class ReceiveThread extends Thread {
+		
+		@Override
+		public void run() {
+			while(true) {
+				ReadDataThread readDataThread  = new ReadDataThread();
+				readDataThread.start();
+			}
+		}
+	}
+	
+	class ReadDataThread extends Thread {
+		
+		@Override
+		public void run() {
+			try {
+				scanner = new Scanner(connection.getInputStream());
+				while (scanner.hasNext()){
+					String message = scanner.nextLine();
+					System.out.println("Message Receive => " +  message);
+					message  = message.replace("msg=>", "");
+					lblMsgSender.setText(message);
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}			
+		}
+	}
 }
